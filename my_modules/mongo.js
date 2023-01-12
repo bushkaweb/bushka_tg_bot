@@ -1,3 +1,4 @@
+require('dotenv').config();
 const mongoose = require('mongoose');
 const config = require('config');
 const User = require('../models/User');
@@ -6,7 +7,7 @@ const Post = require('../models/Post');
 const { messageList } = require('../my_modules/messages')
 
 
-const mongoUri = config.get("MongoUri")
+const mongoUri = process.env.MongoUri
 
 function connectToMongoDB() {
     mongoose.set('strictQuery', true);
