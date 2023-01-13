@@ -1,11 +1,15 @@
 require('dotenv').config();
+const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const config = require('config');
 
 const { connectToMongoDB, login, post, search, seachById, removePostById } = require('./my_modules/mongo');
 const { textOptions, messageList, checkIsUnidentified } = require('./my_modules/messages')
 
+const PORT = process.env.PORT || config.get("PORT")
 const token = process.env.TOKEN || ""
+
+const app = express()
 const bot = new TelegramBot(token, { polling: true });
 
 let page = 0
@@ -127,4 +131,13 @@ async function remove(message, currentMessage) {
     return await bot.deleteMessage(message.chat.id, currentMessage.message_id)
 }
 
-start()
+// express
+
+app.get("/", (req, res) => {
+    res.end()
+})
+
+app.listen(PORT, () => {
+    console.log(`Server start on port ${PORT}`);
+    start()
+})
