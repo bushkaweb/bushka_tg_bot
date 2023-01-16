@@ -23,7 +23,6 @@ function start() {
 
         bot.onText(textOptions.start, async message => {
             await send(message, messageList.start(message.from.first_name))
-            await login(message.from)
         })
 
         bot.onText(textOptions.help, async message => {
@@ -57,6 +56,7 @@ function start() {
 
         bot.on("message", async message => {
             console.log(message.text);
+            login(message.from)
 
             if (checkIsUnidentified(message.text) && message?.reply_to_message?.from?.id !== 5980094782) {
                 await send(message, messageList.unidentified)
