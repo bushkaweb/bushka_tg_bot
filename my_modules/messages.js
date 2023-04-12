@@ -6,7 +6,8 @@ const textOptions = {
     newPost: /^(\/p)$/,
     deletePost: /^(\/di \w+)$/,
     myPosts: /^(\/myPosts)$/,
-    myProfile: /^(\/myProfile)$/
+    myProfile: /^(\/myProfile)$/,
+    cls: /^(\/cls)$/
 }
 
 const messageList = {
@@ -21,14 +22,17 @@ const messageList = {
         title: "Как будет называться объявление?",
         descriptions: "Какое будет описание у объявления? (необязательно)",
         price: "Какая будет цена товара? (Br)",
+        photo: "Пришлите фото объявления(файлом).",
         confirm: post => `Все верно?\n\nНазвание: ${post.title}\nОписание: ${post.description}\nЦена: ${post.price}\n\n(да/нет)`,
         success: "Объявление успешно опубликовано!",
+        photoError: "Ошибка. Пришлите фото объявления(файлом).",
         error: "Что-то пошло не так.",
         loading: "Публикую объявление...",
     },
     deletePost: {
         noAccess: "Вы не можете удалить это объявление, оно пренадлежит другому пользователю.",
         success: "Объявление успешно удалено!",
+        notFound: (id) => `Объявление с id '${id}' не найдено.`,
         error: "Что-то пошло не так."
     },
     myPosts: "Мои посты",

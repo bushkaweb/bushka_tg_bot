@@ -15,6 +15,8 @@
     "config": "^3.3.8",
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
+    "file-type": "^18.2.1",
+    "googleapis": "^116.0.0",
     "mongoose": "^6.8.3",
     "node-telegram-bot-api": "^0.61.0"
   },
