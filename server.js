@@ -5,7 +5,7 @@ const TelegramBot = require("node-telegram-bot-api");
 const config = require("config");
 const path = require("path");
 const fs = require("fs");
-const fetch = require("fetch")
+const {fetchUrl} = require("fetch")
 
 const {
   connectToMongoDB,
@@ -127,7 +127,7 @@ async function searchHandle(message, prevPostMessage) {
   const newFilePath = path.join(__dirname, "cache", "cache.png");
 
   if (postList[0].photo) {
-    return await fetch(postList[0].photo)
+    return await fetchUrl(postList[0].photo)
       .then(async (res) => {
         const arrayBuffer = await res.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);

@@ -1,6 +1,7 @@
 require("dotenv").config();
 const { google } = require("googleapis");
 const stream = require("stream");
+const {fetchUrl} = require('fetch');
 
 const parents_id = process.env["parents_announcement_id"];
 const client_id = process.env["client_id"];
@@ -13,7 +14,7 @@ auth.setCredentials({ refresh_token });
 const driveService = google.drive({ version: "v3", auth });
 
 async function uploadPostPhoto(fileLink, fileObj) {
-  const file = await fetch(fileLink)
+  const file = await fetchUrl(fileLink)
     .then(async (res) => await res.arrayBuffer())
     .catch((e) => {
       console.log(e);
