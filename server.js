@@ -4,8 +4,7 @@ const express = require("express");
 const TelegramBot = require("node-telegram-bot-api");
 const config = require("config");
 const path = require("path");
-const fs = require("fs");
-const {fetchUrl} = require("fetch")
+const uuid = require('uuid').v4;
 
 const {
   connectToMongoDB,
@@ -120,48 +119,30 @@ async function searchHandle(message, prevPostMessage) {
       reply_markup: {
         inline_keyboard: [[{ text: "Назад", callback_data: "prev_page" }]],
       },
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   const caption = `${postList[0]._id}\n\n${postList[0].title}\n\n${postList[0].description}\n\n${postList[0].price} руб.`;
-  const newFilePath = path.join(__dirname, "cache", "cache.png");
+  const photoLink = postList[0].photo
 
-  if (postList[0].photo) {
-    return await fetchUrl(postList[0].photo)
-      .then(async (res) => {
-        const arrayBuffer = await res.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        fs.writeFileSync(newFilePath, buffer, { flag: "w+" });
+  console.log(postList[0].photo);
 
-        return await bot
-          .sendPhoto(message.chat.id, newFilePath, {
-            caption,
-            reply_markup: {
-              inline_keyboard: [
-                [
-                  { text: "Назад", callback_data: "prev_page" },
-                  { text: "Далее", callback_data: "next_page" },
-                ],
-              ],
-            },
-          })
-      })
-      .catch((e) => {
-        console.log(e);
-        return null;
-      });
+  if (!photoLink) {
+    return await send(message, caption, {
+      caption,
+      reply_markup: {
+        inline_keyboard: [
+          [
+            { text: "Назад", callback_data: "prev_page" },
+            { text: "Далее", callback_data: "next_page" },
+          ],
+        ],
+      },
+    })
   }
 
-  return await send(message, caption, {
-    reply_markup: {
-      inline_keyboard: [
-        [
-          { text: "Назад", callback_data: "prev_page" },
-          { text: "Далее", callback_data: "next_page" },
-        ],
-      ],
-    },
-  });
+  return await bot.sendPhoto(message.chat.id, photoLink, { caption })
+  .catch(e => console.log(e))
 }
 
 async function searchByIdHandle(message) {
@@ -185,7 +166,7 @@ async function remove(message, currentMessage) {
 // express
 
 app.get("/", (req, res) => {
-  res.end();
+  res.end('bot start');
 });
 
 app.listen(PORT, () => {

@@ -1,7 +1,9 @@
 require("dotenv").config();
 const { google } = require("googleapis");
 const stream = require("stream");
-const {fetchUrl} = require('fetch');
+const axios = require("axios").default;
+const fs = require('fs');
+const path = require('path');
 
 const parents_id = process.env["parents_announcement_id"];
 const client_id = process.env["client_id"];
@@ -13,31 +15,29 @@ const auth = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
 auth.setCredentials({ refresh_token });
 const driveService = google.drive({ version: "v3", auth });
 
-async function uploadPostPhoto(fileLink, fileObj) {
-  const file = await fetchUrl(fileLink)
-    .then(async (res) => await res.arrayBuffer())
-    .catch((e) => {
-      console.log(e);
-      return null;
-    });
+async function uploadPostPhoto(filePath, fileObj) {
+  console.log(filePath);  
 
-  const bufferStream = new stream.PassThrough();
-  const buffer = Buffer.from(file);
-  bufferStream.end(buffer);
+  const newFilePath = path.join(__dirname, "../", "cache", fileObj.file_name)
+
+  fs.renameSync(filePath, newFilePath)
+
+  const fileReadStream = fs.createReadStream(newFilePath)
 
   return await driveService.files
     .create({
       media: {
         mimeType: fileObj.mime_type,
-        body: bufferStream,
+        body: fileReadStream,
       },
       requestBody: {
         name: fileObj.file_name,
         parents: [parents_id],
       },
-      fields: "id,name",
+      fields: "id",
     })
     .then(async (data) => {
+      console.log(data);
       return await generatePublicUrl(data.data.id);
     })
     .catch((e) => {
@@ -50,14 +50,10 @@ async function generatePublicUrl(fileId) {
   try {
     const result = await driveService.files.get({
       fileId: fileId,
-      fields: "webViewLink, webContentLink",
+      fields: "webContentLink",
     });
 
-    if (result.data.webViewLink) {
-      return result.data.webContentLink;
-    }
-
-    return null;
+    return result.data.webContentLink;
   } catch (e) {
     console.log(e);
     return null;

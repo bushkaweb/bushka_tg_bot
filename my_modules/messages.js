@@ -2,7 +2,7 @@ const textOptions = {
     start: /^(\/start)$/,
     help: /^(\/h)$/,
     search: /^(\/s)$/,
-    searchById: /^(\/i \w+)$/,
+    searchById: /^(\/si \w+)$/,
     newPost: /^(\/p)$/,
     deletePost: /^(\/di \w+)$/,
     myPosts: /^(\/myPosts)$/,

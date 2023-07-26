@@ -2,6 +2,8 @@ require("dotenv").config();
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const Post = require("../models/Post");
+const path = require('path');
+const fs = require('fs');
 
 const { messageList } = require("../my_modules/messages");
 const { uploadPostPhoto } = require("../my_modules/google");
@@ -29,6 +31,7 @@ async function search(page = 0, message, send, remove) {
     .skip(page)
     .limit(1)
     .then(async (post) => {
+      console.log(post);
       await remove(message, loading_message);
       return post;
     })
@@ -66,6 +69,7 @@ async function postHandler(bot, message, send, remove) {
     title: "",
     description: "",
     price: "",
+    photo: "",
     owner: message.from.id,
   };
 
@@ -179,13 +183,21 @@ async function postHandler(bot, message, send, remove) {
 }
 
 async function post(bot, postInfo, message, send, remove) {
+  const cachePath = path.join(__dirname, "../", "cache")
+
+  console.log(postInfo.photo);
+
   const loading_message = await send(message, messageList.newPost.loading);
-  const photoLink = await bot.getFileLink(postInfo.photo.file_id);
-  const photoDriveLink = await uploadPostPhoto(photoLink, postInfo.photo);
+  const filePath = await bot.downloadFile(postInfo.photo.thumbnail.file_id, cachePath)
+  const photoDriveLink = await uploadPostPhoto(filePath, postInfo.photo);
+
+  const cacheFilePath = path.join(cachePath, postInfo.photo.file_name)
+
+  fs.unlinkSync(cacheFilePath)
 
   const post = new Post({
     ...postInfo,
-    photo: photoLink
+    photo: photoDriveLink
   });
 
   return await post
