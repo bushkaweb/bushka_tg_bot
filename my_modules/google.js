@@ -1,56 +1,78 @@
-require("dotenv").config();
-const { google } = require("googleapis");
-const stream = require("stream");
-const axios = require("axios").default;
+require('dotenv').config();
+const {google} = require('googleapis');
 const fs = require('fs');
 const path = require('path');
+const uuid = require('uuid').v4;
 
-const parents_id = process.env["parents_announcement_id"];
-const client_id = process.env["client_id"];
-const client_secret = process.env["client_secret"];
-const redirect_uri = process.env["redirect_uri"];
-const refresh_token = process.env["refresh_token"];
+const parentsId = process.env['parents_announcement_id'];
+const clientId = process.env['client_id'];
+const clientSecret = process.env['client_secret'];
+const redirectUri = process.env['redirect_uri'];
+const refreshToken = process.env['refresh_token'];
 
-const auth = new google.auth.OAuth2(client_id, client_secret, redirect_uri);
-auth.setCredentials({ refresh_token });
-const driveService = google.drive({ version: "v3", auth });
+const auth = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
+auth.setCredentials({refreshToken});
+const driveService = google.drive({version: 'v3', auth});
 
-async function uploadPostPhoto(filePath, fileObj) {
-  console.log(filePath);  
+const cachePath = path.join(__dirname, '../', 'cache');
 
-  const newFilePath = path.join(__dirname, "../", "cache", fileObj.file_name)
+/**
+ * Upload photo to Google Drive
+ *
+ * @param {*} bot
+ * @param {*} fileObj
+ * @return {String}
+ */
+async function uploadPostPhoto(bot, fileObj) {
+  if (!fs.existsSync(cachePath)) {
+    fs.mkdirSync(cachePath);
+  }
 
-  fs.renameSync(filePath, newFilePath)
+  const cacheFileDir = uuid();
+  const cacheFileDirPath = path.join(cachePath, cacheFileDir);
 
-  const fileReadStream = fs.createReadStream(newFilePath)
+  if (!fs.existsSync(cacheFileDirPath)) {
+    fs.mkdirSync(cacheFileDirPath);
+  }
+
+  const fileId = fileObj.file_id;
+  const newFilePath = await bot.downloadFile(fileId, cacheFileDirPath)
+      .catch(console.log);
+
+  const fileReadStream = fs.createReadStream(newFilePath);
 
   return await driveService.files
-    .create({
-      media: {
-        mimeType: fileObj.mime_type,
-        body: fileReadStream,
-      },
-      requestBody: {
-        name: fileObj.file_name,
-        parents: [parents_id],
-      },
-      fields: "id",
-    })
-    .then(async (data) => {
-      console.log(data);
-      return await generatePublicUrl(data.data.id);
-    })
-    .catch((e) => {
-      console.log(e);
-      return null;
-    });
+      .create({
+        media: {
+          mimeType: fileObj.mime_type,
+          body: fileReadStream,
+        },
+        requestBody: {
+          name: fileObj.file_name,
+          parents: [parentsId],
+        },
+        fields: 'id',
+      })
+      .then(async (data) => {
+        return await generatePublicUrl(data.data.id);
+      })
+      .catch((e) => {
+        console.log(e);
+        return null;
+      });
 }
 
+/**
+ * Generate public link to Google Drive file
+ *
+ * @param {*} fileId
+ * @return {String}
+ */
 async function generatePublicUrl(fileId) {
   try {
     const result = await driveService.files.get({
       fileId: fileId,
-      fields: "webContentLink",
+      fields: 'webContentLink',
     });
 
     return result.data.webContentLink;
@@ -60,4 +82,4 @@ async function generatePublicUrl(fileId) {
   }
 }
 
-module.exports = { uploadPostPhoto };
+module.exports = {uploadPostPhoto};
