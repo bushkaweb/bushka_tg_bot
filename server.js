@@ -279,8 +279,8 @@ function checkClientInfo(id) {
 
 // express
 
-app.get('/', (req, res) => {
-  res.end('bot start');
+app.get('/', (_req, res) => {
+  res.status(200).end('bot start');
 });
 
 app.listen(PORT, () => {
