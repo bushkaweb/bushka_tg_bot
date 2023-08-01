@@ -17,13 +17,14 @@ const {
   textOptions,
   messageList,
   checkIsUnidentified,
+  generateCaption,
 } = require('./my_modules/messages');
 
 const PORT = process.env.PORT || config.get('PORT');
 const token = process.env.TOKEN || '';
 
 const app = express();
-const bot = new TelegramBot(token, {polling: true});
+const bot = new TelegramBot(token, { polling: true });
 
 const clientInfo = {};
 
@@ -77,9 +78,9 @@ function start() {
     bot.onText(textOptions.cls, async (msg) => {
       const removeMessage = async (i = 0) => {
         return await bot
-            .deleteMessage(msg.chat.id, msg.message_id - i)
-            .then(() => removeMessage(i + 1))
-            .catch(() => msg.message_id - i > 0 && removeMessage(i + 1));
+          .deleteMessage(msg.chat.id, msg.message_id - i)
+          .then(() => removeMessage(i + 1))
+          .catch(() => msg.message_id - i > 0 && removeMessage(i + 1));
       };
       removeMessage();
     });
@@ -87,9 +88,7 @@ function start() {
     bot.on('message', async (message) => {
       checkClientInfo();
 
-      if (message.message_id < 10) {
-        login(message.chat);
-      }
+      login(message.from);
 
       if (checkIsUnidentified(message.text) && !message.reply_to_message) {
         await send(message, messageList.unidentified);
@@ -98,7 +97,7 @@ function start() {
 
     bot.on('callback_query', async (query) => {
       if (!clientInfo[query.from.id]) {
-        clientInfo[query.from.id] = {page: 0, prevMessage: null};
+        clientInfo[query.from.id] = { page: 0, prevMessage: null };
       }
 
       const currentMessage = clientInfo[query.from.id].prevMessage;
@@ -107,7 +106,7 @@ function start() {
 
       switch (query.data) {
         case 'prev_page':
-          clientInfo[query.from.id].page -= 1;
+          clientInfo[query.from.id].page = (clientInfo[query.from.id].page - 1) || 0;
           clientInfo[query.from.id].prevMessage = prevMessage;
           break;
         case 'next_page':
@@ -138,17 +137,17 @@ async function searchHandle(message, prevMessage) {
     await remove(message, prevMessage);
   }
 
-  const currentPage = clientInfo[message.chat.id].page ?? 0;
+  const currentPage = clientInfo[message.chat.id].page;
 
   let postList = await search(currentPage, message, send, remove);
 
   if (!postList?.length) {
-    if (clientInfo[message.chat.id].page < 0) {
-      clientInfo[message.chat.id].page = -1;
-      postList = await search(-1, message, send, remove);
-    } else {
-      clientInfo[message.chat.id].page = 0;
-      postList = await search(0, message, send, remove);
+    clientInfo[message.chat.id].page = 0
+    postList = await search(0, message, send, remove);
+
+    if (!postList.length) {
+      const messageEnd = messageList.search.end
+      return await send(message, messageEnd)
     }
   }
 
@@ -156,54 +155,25 @@ async function searchHandle(message, prevMessage) {
 
   const owner = await findUserById(currentPost.owner);
 
-  let caption = '';
-  let options = {};
-
-  if (currentPost.contacts) {
-    caption = `
-    ${currentPost._id}
-    ${currentPost.date ? '\n\n' + currentPost.date : ''}\n\n
-    ${currentPost.title}\n\n
-    ${currentPost.description}\n\n
-    ${currentPost.contacts}\n\n
-    ${currentPost.price} руб.
-    `;
-
-    options = {
-      caption,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {text: 'Назад', callback_data: 'prev_page'},
-            {text: 'Далее', callback_data: 'next_page'},
-          ],
+  const caption = generateCaption(currentPost, !!currentPost.contacts);
+  const options = {
+    caption,
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: 'Назад', callback_data: 'prev_page' },
+          { text: 'Далее', callback_data: 'next_page' },
         ],
-      },
-    };
-  } else {
-    caption = `
-    ${currentPost._id}
-    ${currentPost.date ? '\n\n' + currentPost.date : ''}\n\n
-    ${currentPost.title}\n\n
-    ${currentPost.description}\n\n
-    ${currentPost.price} руб.
-    `;
+      ],
+    },
+    parse_mode: "MarkdownV2"
+  };
 
-    options = {
-      caption,
-      reply_markup: {
-        inline_keyboard: [
-          [
-            {text: 'Связаться', url: `https://telegram.me/${owner.username}`},
-
-          ],
-          [
-            {text: 'Назад', callback_data: 'prev_page'},
-            {text: 'Далее', callback_data: 'next_page'},
-          ],
-        ],
-      },
-    };
+  if (!currentPost.contacts) {
+    const contact = [
+      { text: 'Связаться', url: `https://telegram.me/${owner.username}` }
+    ]
+    options.reply_markup.inline_keyboard.unshift(contact)
   }
 
   const photoLink = postList[0].photo;
@@ -213,7 +183,7 @@ async function searchHandle(message, prevMessage) {
   }
 
   return await bot.sendPhoto(message.chat.id, photoLink, options)
-      .catch((e) => console.log(e));
+    .catch((e) => console.log(e));
 }
 
 /**
@@ -228,13 +198,7 @@ async function searchByIdHandle(message) {
   if (!currentPost) {
     return await send(message, messageList.search.notFound);
   }
-  const postMessage = `
-  ${currentPost._id}\n\n
-  ${currentPost.title}\n\n
-  ${currentPost.description}\n\n
-  ${currentPost.price} руб.
-  `;
-  return await send(message, postMessage);
+  return await send(message, generateCaption(currentPost));
 }
 
 /**
@@ -271,7 +235,7 @@ async function remove(message, currentMessage) {
 function checkClientInfo(id) {
   if (clientInfo[id]) return;
 
-  clientInfo[id] = {page: 0, prevMessage: null};
+  clientInfo[id] = { page: 0, prevMessage: null };
   return;
 }
 

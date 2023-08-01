@@ -1,8 +1,7 @@
 const {Schema, model} = require('mongoose');
 
 const Post = new Schema({
-  title: {type: String, require: true},
-  description: {type: String},
+  about: {type: String, require: true},
   photo: {type: String},
   price: {type: Number, require: true},
   owner: {type: Number, require: true},

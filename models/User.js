@@ -5,6 +5,7 @@ const User = new Schema({
   username: {type: String},
   first_name: {type: String},
   last_name: {type: String},
+  roles: { type: Array },
   is_bot: {type: Boolean},
   language_code: {type: String},
 });

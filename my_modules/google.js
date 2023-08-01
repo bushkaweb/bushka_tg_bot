@@ -5,6 +5,7 @@ const path = require('path');
 const uuid = require('uuid').v4;
 const config = require('config');
 
+const cachePath = path.join(__dirname, '../', 'cache');
 const parentsId = process.env['parents_announcement_id'];
 const clientId = process.env['client_id'];
 const clientSecret = process.env['client_secret'];
@@ -16,22 +17,22 @@ const refreshTokenDelay = config.get('REFRESH_TOKEN_DELAY');
 /**
  * Update Google OAuth refresh token
  */
-function updateRefreshToken() {
-  auth.refreshAccessToken((err, tokens) => {
-    if (err) {
-      console.log(err);
-      return;
-    }
-
-    auth.setCredentials({refreshToken: tokens.refresh_token});
-  });
+async function updateRefreshAndAccessToken() {
+  const content = fs.readFileSync(path.join(__dirname, "../", "token.json"))
+  const tokens = JSON.parse(content)
+  auth.setCredentials(tokens)
 }
 
-setInterval(updateRefreshToken, refreshTokenDelay);
+/**
+ * Start auth
+ */
+function start() {
+  updateRefreshAndAccessToken()
+  setInterval(() => {updateRefreshAndAccessToken()}, refreshTokenDelay);
+}
+start()
 
 const driveService = google.drive({version: 'v3', auth});
-
-const cachePath = path.join(__dirname, '../', 'cache');
 
 /**
  * Upload photo to Google Drive
