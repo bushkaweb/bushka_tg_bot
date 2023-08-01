@@ -48,7 +48,7 @@ function findUserById(id) {
 async function search(page, message, send, remove) {
   const loadingMessage = await send(message, messageList.search.loading);
 
-  if (page < 1) return null;
+  if (page < 0) return null;
 
   return await Post.find()
       .limit(1)
