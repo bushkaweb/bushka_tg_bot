@@ -23,6 +23,8 @@ async function updateRefreshAndAccessToken() {
   auth.setCredentials(tokens);
 }
 
+let driveService;
+
 /**
  * Start auth
  */
@@ -30,11 +32,10 @@ function start() {
   updateRefreshAndAccessToken();
   setInterval(() => {
     updateRefreshAndAccessToken();
+    driveService = google.drive({version: 'v3', auth});
   }, refreshTokenDelay);
 }
 start();
-
-const driveService = google.drive({version: 'v3', auth});
 
 /**
  * Upload photo to Google Drive
