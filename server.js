@@ -248,11 +248,11 @@ function checkClientInfo(id) {
  *
  * @param {*} message
  */
-async function clearChat(message) {
-  return async (i = 0) => await bot
+function clearChat(message, i = 0) {
+  return bot
     .deleteMessage(message.chat.id, message.message_id - i)
-    .then(() => clearChat(i + 1))
-    .catch(() => message.message_id - i > 0 && clearChat(i + 1));
+    .then(() => clearChat(message, i + 1))
+    .catch(() => message.message_id - i > 0 && clearChat(message, i + 1));
 }
 
 // express
