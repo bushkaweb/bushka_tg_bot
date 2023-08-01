@@ -99,7 +99,7 @@ function start() {
 
     bot.on('callback_query', async (query) => {
       if (!clientInfo[query.from.id]) {
-        clientInfo[query.from.id] = { page: 0, prevMessage: null };
+        clientInfo[query.from.id] = { page: 1, prevMessage: null };
       }
 
       const currentMessage = clientInfo[query.from.id].prevMessage;
@@ -109,7 +109,7 @@ function start() {
       switch (query.data) {
         case 'prev_page':
           const currentPage = clientInfo[query.from.id].page;
-          clientInfo[query.from.id].page = (currentPage - 1) || 0;
+          clientInfo[query.from.id].page = (currentPage - 1) || 1;
           clientInfo[query.from.id].prevMessage = prevMessage;
           break;
         case 'next_page':
@@ -145,7 +145,7 @@ async function searchHandle(message, prevMessage) {
   let postList = await search(currentPage, message, send, remove);
 
   if (!postList?.length) {
-    clientInfo[message.chat.id].page = 0;
+    clientInfo[message.chat.id].page = 1;
     postList = await search(0, message, send, remove);
 
     if (!postList.length) {
@@ -238,7 +238,7 @@ async function remove(message, currentMessage) {
 function checkClientInfo(id) {
   if (clientInfo[id]) return;
 
-  clientInfo[id] = { page: 0, prevMessage: null };
+  clientInfo[id] = { page: 1, prevMessage: null };
   return;
 }
 
