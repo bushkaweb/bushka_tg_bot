@@ -1,5 +1,5 @@
 require('dotenv').config();
-const {google} = require('googleapis');
+const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid').v4;
@@ -7,41 +7,38 @@ const config = require('config');
 
 const cachePath = path.join(__dirname, '../', 'cache');
 const parentsId = process.env['parents_announcement_id'];
-const clientId = process.env['client_id'];
-const clientSecret = process.env['client_secret'];
-const redirectUri = process.env['redirect_uri'];
 
-const auth = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
-const refreshTokenDelay = config.get('REFRESH_TOKEN_DELAY');
+let credentialsPath = '/etc/secrets/token.json';
 
-/**
- * Update Google OAuth refresh token
- */
-async function updateRefreshAndAccessToken() {
-  let tokenPath = '/etc/secrets/token.json';
-  if (!fs.existsSync(tokenPath)) {
-    tokenPath = path.join(__dirname, '../', 'token.json');
+if (!fs.existsSync(credentialsPath)) {
+  credentialsPath = path.join(__dirname, '../', 'credentials.json');
+}
+const credentialsContent = fs.readFileSync(credentialsPath)
+const credentials = JSON.parse(credentialsContent)["web"]
+
+const auth = new google.auth.OAuth2({
+  clientId: credentials["client_id"],
+  clientSecret: credentials["client_secret"],
+  redirectUri: credentials["redirect_uris"][0]
+});
+
+let tokenPath = '/etc/secrets/token.json';
+if (!fs.existsSync(tokenPath)) {
+  tokenPath = path.join(__dirname, '../', 'token.json');
+}
+const tokensContent = fs.readFileSync(tokenPath);
+const tokens = JSON.parse(tokensContent);
+auth.setCredentials(tokens)
+
+auth.refreshAccessToken((err, tokens) => {
+  if (err) {
+    return console.log(err);
   }
-  const content = fs.readFileSync(tokenPath);
-  const tokens = JSON.parse(content);
-  auth.setCredentials(tokens);
-}
 
-let driveService;
+  auth.setCredentials(tokens)
+})
 
-/**
- * Start auth
- */
-function start() {
-  updateRefreshAndAccessToken();
-  driveService = google.drive({version: 'v3', auth});
-
-  setInterval(() => {
-    updateRefreshAndAccessToken();
-    driveService = google.drive({version: 'v3', auth});
-  }, refreshTokenDelay);
-}
-start();
+const driveService = google.drive({ version: 'v3', auth });
 
 /**
  * Upload photo to Google Drive
@@ -64,29 +61,29 @@ async function uploadPostPhoto(bot, fileObj) {
 
   const fileId = fileObj.file_id;
   const newFilePath = await bot.downloadFile(fileId, cacheFileDirPath)
-      .catch(console.log);
+    .catch(console.log);
 
   const fileReadStream = fs.createReadStream(newFilePath);
 
   return await driveService.files
-      .create({
-        media: {
-          mimeType: fileObj.mime_type,
-          body: fileReadStream,
-        },
-        requestBody: {
-          name: fileObj.file_name,
-          parents: [parentsId],
-        },
-        fields: 'id',
-      })
-      .then(async (data) => {
-        return await generatePublicUrl(data.data.id);
-      })
-      .catch((e) => {
-        console.log(e);
-        return null;
-      });
+    .create({
+      media: {
+        mimeType: fileObj.mime_type,
+        body: fileReadStream,
+      },
+      requestBody: {
+        name: fileObj.file_name,
+        parents: [parentsId],
+      },
+      fields: 'id',
+    })
+    .then(async (data) => {
+      return await generatePublicUrl(data.data.id);
+    })
+    .catch((e) => {
+      console.log(e);
+      return null;
+    });
 }
 
 /**
@@ -109,4 +106,4 @@ async function generatePublicUrl(fileId) {
   }
 }
 
-module.exports = {uploadPostPhoto};
+module.exports = { uploadPostPhoto };
