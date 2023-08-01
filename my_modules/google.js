@@ -8,7 +8,7 @@ const config = require('config');
 const cachePath = path.join(__dirname, '../', 'cache');
 const parentsId = process.env['parents_announcement_id'];
 
-let credentialsPath = '/etc/secrets/token.json';
+let credentialsPath = '/etc/secrets/credentials.json';
 
 if (!fs.existsSync(credentialsPath)) {
   credentialsPath = path.join(__dirname, '../', 'credentials.json');
