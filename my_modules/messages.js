@@ -1,7 +1,7 @@
 const textOptions = {
-  start: /^((\/start)||Поиск)$/,
+  start: /^(\/start)$/,
   help: /^(\/h)$/,
-  search: /^(\/s)$/,
+  search: /^((\/s)||Поиск)$/,
   searchById: /^(\/si \w+)$/,
   newPost: /^((\/p)||Подать объявление)$/,
   deletePost: /^(\/di \w+)$/,
