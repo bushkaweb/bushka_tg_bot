@@ -18,7 +18,7 @@ const refreshTokenDelay = config.get('REFRESH_TOKEN_DELAY');
  * Update Google OAuth refresh token
  */
 async function updateRefreshAndAccessToken() {
-  const content = fs.readFileSync(path.join(__dirname, "../", "token.json"))
+  const content = fs.readFileSync("/etc/secrets/token.json")
   const tokens = JSON.parse(content)
   auth.setCredentials(tokens)
 }
