@@ -48,6 +48,8 @@ function findUserById(id) {
 async function search(page, message, send, remove) {
   const loadingMessage = await send(message, messageList.search.loading);
 
+  if (page < 0) return null;
+
   return await Post.find()
       .limit(1)
       .sort({$natural: -1})
