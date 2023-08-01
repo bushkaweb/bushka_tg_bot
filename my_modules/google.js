@@ -11,7 +11,14 @@ const redirectUri = process.env['redirect_uri'];
 const refreshToken = process.env['refresh_token'];
 
 const auth = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
-auth.setCredentials({refreshToken});
+auth.refreshAccessToken((err, tokens) => {
+  if (err) {
+    console.log(err);
+    return null;
+  }
+
+  auth.setCredentials({refreshToken: tokens.refresh_token});
+})
 const driveService = google.drive({version: 'v3', auth});
 
 const cachePath = path.join(__dirname, '../', 'cache');

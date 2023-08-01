@@ -23,7 +23,7 @@ const PORT = process.env.PORT || config.get('PORT');
 const token = process.env.TOKEN || '';
 
 const app = express();
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token, {polling: true});
 
 const clientInfo = {};
 
@@ -77,9 +77,9 @@ function start() {
     bot.onText(textOptions.cls, async (msg) => {
       const removeMessage = async (i = 0) => {
         return await bot
-          .deleteMessage(msg.chat.id, msg.message_id - i)
-          .then(() => removeMessage(i + 1))
-          .catch(() => msg.message_id - i > 0 && removeMessage(i + 1));
+            .deleteMessage(msg.chat.id, msg.message_id - i)
+            .then(() => removeMessage(i + 1))
+            .catch(() => msg.message_id - i > 0 && removeMessage(i + 1));
       };
       removeMessage();
     });
@@ -87,12 +87,10 @@ function start() {
     bot.on('message', async (message) => {
       checkClientInfo();
 
-      console.log(message.chat.first_name, ':', '(', message.message_id, ')', message.text);
-
       if (message.message_id < 10) {
         login(message.chat);
       }
-      
+
       if (checkIsUnidentified(message.text) && !message.reply_to_message) {
         await send(message, messageList.unidentified);
       }
@@ -100,7 +98,7 @@ function start() {
 
     bot.on('callback_query', async (query) => {
       if (!clientInfo[query.from.id]) {
-        clientInfo[query.from.id] = { page: 0, prevMessage: null };
+        clientInfo[query.from.id] = {page: 0, prevMessage: null};
       }
 
       const currentMessage = clientInfo[query.from.id].prevMessage;
@@ -176,8 +174,8 @@ async function searchHandle(message, prevMessage) {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: 'Назад', callback_data: 'prev_page' },
-            { text: 'Далее', callback_data: 'next_page' },
+            {text: 'Назад', callback_data: 'prev_page'},
+            {text: 'Далее', callback_data: 'next_page'},
           ],
         ],
       },
@@ -196,12 +194,12 @@ async function searchHandle(message, prevMessage) {
       reply_markup: {
         inline_keyboard: [
           [
-            { text: 'Связаться', url: `https://telegram.me/${owner.username}` },
+            {text: 'Связаться', url: `https://telegram.me/${owner.username}`},
 
           ],
           [
-            { text: 'Назад', callback_data: 'prev_page' },
-            { text: 'Далее', callback_data: 'next_page' },
+            {text: 'Назад', callback_data: 'prev_page'},
+            {text: 'Далее', callback_data: 'next_page'},
           ],
         ],
       },
@@ -215,7 +213,7 @@ async function searchHandle(message, prevMessage) {
   }
 
   return await bot.sendPhoto(message.chat.id, photoLink, options)
-    .catch((e) => console.log(e));
+      .catch((e) => console.log(e));
 }
 
 /**
@@ -273,7 +271,7 @@ async function remove(message, currentMessage) {
 function checkClientInfo(id) {
   if (clientInfo[id]) return;
 
-  clientInfo[id] = { page: 0, prevMessage: null };
+  clientInfo[id] = {page: 0, prevMessage: null};
   return;
 }
 
