@@ -23,9 +23,7 @@ const messageList = {
     price: 'Какая будет цена товара? (Br)',
     photo: 'Пришлите фото объявления в сжатом виде.',
     // eslint-disable-next-line
-    confirm: (post) => `Все верно?\n\n${generateCaption(post, !!post.contacts, false)}\n\nНапишите "Да" или "Нет"`,
-    // eslint-disable-next-line
-    noUserName: 'В вашем профиле отсутствует уникальное имя,поэтому клиент не сможет связаться с вами. Отправьте свои контакты или напишите "Нет", чтобы отменить создание объявления.',
+    confirm: (post) => `Все верно?\n\n${generateCaption(post, false)}\n\nНапишите "Да" или "Нет"`,
     success: 'Объявление успешно опубликовано!',
     photoError: 'Ошибка. Пришлите фото объявления в сжатом виде.',
     error: 'Что-то пошло не так.',
@@ -87,22 +85,15 @@ function checkIsUnidentified(text) {
  * Generate caption for post
  *
  * @param {*} post
- * @param {Boolean} withContacts
  * @param {Boolean} withId
  * @return {String}
  */
-function generateCaption(post, withContacts = false, withId = true) {
+function generateCaption(post, withId = true) {
   let result = '';
 
   if (withId) result += `_${post._id}_\n\n`;
 
-  if (withContacts) {
-    result += `${post.about}\n\n`;
-    result += `Контакты: ${post.contacts}\n\n`;
-  } else {
-    result += `${post.about}\n\n`;
-  }
-
+  result += `${post.about}\n\n`;
   result += `Дата и время публикации:\n${post.date}\n\n`;
   result += `*${post.price}руб*`;
   result = result.split('.').join('\\.');

@@ -24,7 +24,7 @@ const PORT = process.env.PORT || config.get('PORT');
 const token = process.env.TOKEN || '';
 
 const app = express();
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token, {polling: true});
 
 const clientInfo = {};
 
@@ -40,7 +40,7 @@ function start() {
       const options = {
         reply_markup: {
           keyboard: [
-            [{ text: '🔎Поиск' }, { text: '📰Подать объявление' }],
+            [{text: '🔎Поиск'}, {text: '📰Подать объявление'}],
           ],
           resize_keyboard: true,
         },
@@ -99,7 +99,7 @@ function start() {
 
     bot.on('callback_query', async (query) => {
       if (!clientInfo[query.from.id]) {
-        clientInfo[query.from.id] = { page: 0, prevMessage: null };
+        clientInfo[query.from.id] = {page: 0, prevMessage: null};
       }
 
       const currentMessage = clientInfo[query.from.id].prevMessage;
@@ -157,26 +157,22 @@ async function searchHandle(message, prevMessage) {
 
   const owner = await findUserById(currentPost.owner);
 
-  const caption = generateCaption(currentPost, !!currentPost.contacts);
+  const caption = generateCaption(currentPost);
   const options = {
     caption,
     reply_markup: {
       inline_keyboard: [
         [
-          { text: 'Назад', callback_data: 'prev_page' },
-          { text: 'Далее', callback_data: 'next_page' },
+          {text: 'Связаться', url: `tg://user?id=${owner.id}`},
+        ],
+        [
+          {text: 'Назад', callback_data: 'prev_page'},
+          {text: 'Далее', callback_data: 'next_page'},
         ],
       ],
     },
     parse_mode: 'MarkdownV2',
   };
-
-  if (!currentPost.contacts) {
-    const contact = [
-      { text: 'Связаться', url: `https://telegram.me/${owner.username}` },
-    ];
-    options.reply_markup.inline_keyboard.unshift(contact);
-  }
 
   const photoLink = postList[0].photo;
 
@@ -185,7 +181,7 @@ async function searchHandle(message, prevMessage) {
   }
 
   return await bot.sendPhoto(message.chat.id, photoLink, options)
-    .catch((e) => console.log(e));
+      .catch((e) => console.log(e));
 }
 
 /**
@@ -237,19 +233,22 @@ async function remove(message, currentMessage) {
 function checkClientInfo(id) {
   if (clientInfo[id]) return;
 
-  clientInfo[id] = { page: 0, prevMessage: null };
+  clientInfo[id] = {page: 0, prevMessage: null};
   return;
 }
 
 /**
+ * Clear chat history
  *
  * @param {*} message
+ * @param {*} i
+ * @return {*}
  */
 function clearChat(message, i = 0) {
   return bot
-    .deleteMessage(message.chat.id, message.message_id - i)
-    .then(() => clearChat(message, i + 1))
-    .catch(() => message.message_id - i > 0 && clearChat(message, i + 1));
+      .deleteMessage(message.chat.id, message.message_id - i)
+      .then(() => clearChat(message, i + 1))
+      .catch(() => message.message_id - i > 0 && clearChat(message, i + 1));
 }
 
 // express

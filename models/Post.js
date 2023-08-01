@@ -5,7 +5,6 @@ const Post = new Schema({
   photo: {type: String},
   price: {type: Number, require: true},
   owner: {type: Number, require: true},
-  contacts: {type: String},
   date: {type: String, require: true},
 });
 

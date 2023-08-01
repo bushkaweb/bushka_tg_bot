@@ -18,7 +18,11 @@ const refreshTokenDelay = config.get('REFRESH_TOKEN_DELAY');
  * Update Google OAuth refresh token
  */
 async function updateRefreshAndAccessToken() {
-  const content = fs.readFileSync('/etc/secrets/token.json');
+  let tokenPath = '/etc/secrets/token.json';
+  if (!fs.existsSync(tokenPath)) {
+    tokenPath = path.join(__dirname, '../', 'token.json');
+  }
+  const content = fs.readFileSync(tokenPath);
   const tokens = JSON.parse(content);
   auth.setCredentials(tokens);
 }

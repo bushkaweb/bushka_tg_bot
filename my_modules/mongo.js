@@ -231,47 +231,14 @@ async function postHandler(bot, message, send, remove) {
     );
   };
 
-  const messageContactsHandler = async (messageContacts) => {
-    if (messageContacts.text.toUpperCase() === 'НЕТ') {
-      return null;
-    }
-
-    const postAboutPrompt = await send(message, messageList.newPost.about, {
-      reply_markup: {force_reply: true},
-    });
-
-    newPost.contacts = messageContacts.text;
-
-    return await bot.onReplyToMessage(
-        message.chat.id,
-        postAboutPrompt.message_id,
-        messageAboutHandler,
-    );
-  };
-
-  if (message.from.username) {
-    const postAboutPrompt = await send(message, messageList.newPost.about, {
-      reply_markup: {force_reply: true},
-    });
-
-    return await bot.onReplyToMessage(
-        message.chat.id,
-        postAboutPrompt.message_id,
-        messageAboutHandler,
-    );
-  }
-
-  const postContactsPrompt = await send(
-      message,
-      messageList.newPost.noUserName, {
-        reply_markup: {force_reply: true},
-      },
-  );
+  const postAboutPrompt = await send(message, messageList.newPost.about, {
+    reply_markup: {force_reply: true},
+  });
 
   return await bot.onReplyToMessage(
       message.chat.id,
-      postContactsPrompt.message_id,
-      messageContactsHandler,
+      postAboutPrompt.message_id,
+      messageAboutHandler,
   );
 }
 
