@@ -54,6 +54,7 @@ function start() {
 
     bot.onText(textOptions.search, async (message) => {
       checkClientInfo();
+      await clearChat(message)
 
       const currentMessage = clientInfo[message.chat.id]?.prevMessage;
       const prevMessage = await searchHandle(message, currentMessage);
@@ -67,7 +68,8 @@ function start() {
     });
 
     bot.onText(textOptions.newPost, async (message) => {
-      return await postHandler(bot, message, send, remove);
+      await postHandler(bot, message, send, remove);
+      return await clearChat(message)
     });
 
     bot.onText(textOptions.deletePost, async (message) => {
@@ -83,14 +85,8 @@ function start() {
       return await send(message, messageList.myProfile);
     });
 
-    bot.onText(textOptions.cls, async (msg) => {
-      const removeMessage = async (i = 0) => {
-        return await bot
-            .deleteMessage(msg.chat.id, msg.message_id - i)
-            .then(() => removeMessage(i + 1))
-            .catch(() => msg.message_id - i > 0 && removeMessage(i + 1));
-      };
-      removeMessage();
+    bot.onText(textOptions.cls, async (message) => {
+      return await clearChat(message);
     });
 
     bot.on('message', async (message) => {
@@ -246,6 +242,21 @@ function checkClientInfo(id) {
 
   clientInfo[id] = {page: 0, prevMessage: null};
   return;
+}
+
+/**
+ *
+ * @param {*} message
+ */
+async function clearChat(message) {
+  const removeMessage = async (i = 0) => {
+    return await bot
+        .deleteMessage(message.chat.id, message.message_id - i)
+        .then(() => removeMessage(i + 1))
+        .catch(() => message.message_id - i > 0 && removeMessage(i + 1));
+  };
+
+  return await removeMessage();
 }
 
 // express

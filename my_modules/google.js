@@ -31,7 +31,7 @@ let driveService;
 function start() {
   updateRefreshAndAccessToken();
   driveService = google.drive({version: 'v3', auth});
-  
+
   setInterval(() => {
     updateRefreshAndAccessToken();
     driveService = google.drive({version: 'v3', auth});
