@@ -1,9 +1,9 @@
 const textOptions = {
-  start: /^(\/start)$/,
+  start: /^((\/start)||Поиск)$/,
   help: /^(\/h)$/,
   search: /^(\/s)$/,
   searchById: /^(\/si \w+)$/,
-  newPost: /^(\/p)$/,
+  newPost: /^((\/p)||Подать объявление)$/,
   deletePost: /^(\/di \w+)$/,
   myPosts: /^(\/myPosts)$/,
   myProfile: /^(\/myProfile)$/,

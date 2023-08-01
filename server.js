@@ -37,7 +37,15 @@ function start() {
 
     bot.onText(textOptions.start, async (message) => {
       const startMessageText = messageList.start(message.from.first_name);
-      return await send(message, startMessageText);
+      const options = {
+        reply_markup: {
+          keyboard: [
+            [{text: "Поиск"}, {text: "Подать объявление"}]
+          ],
+          resize_keyboard: true
+        }
+      }
+      return await send(message, startMessageText, options);
     });
 
     bot.onText(textOptions.help, async (message) => {
