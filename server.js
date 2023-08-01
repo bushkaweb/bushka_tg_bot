@@ -40,7 +40,7 @@ function start() {
       const options = {
         reply_markup: {
           keyboard: [
-            [{text: '🔍Поиск'}, {text: '📰Подать объявление'}],
+            [{text: '🔎Поиск'}, {text: '📰Подать объявление'}],
           ],
           resize_keyboard: true,
         },
