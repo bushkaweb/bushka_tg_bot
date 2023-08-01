@@ -3,7 +3,7 @@ const textOptions = {
   help: /^(\/h)$/,
   search: /^((\/s)||🔍Поиск)$/,
   searchById: /^(\/si \w+)$/,
-  newPost: /^((\/p)||🆕Подать объявление)$/,
+  newPost: /^((\/p)||📰Подать объявление)$/,
   deletePost: /^(\/di \w+)$/,
   myPosts: /^(\/myPosts)$/,
   myProfile: /^(\/myProfile)$/,
