@@ -1,5 +1,5 @@
 require('dotenv').config();
-const {google} = require('googleapis');
+const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
 const uuid = require('uuid').v4;
@@ -8,18 +8,17 @@ const parentsId = process.env['parents_announcement_id'];
 const clientId = process.env['client_id'];
 const clientSecret = process.env['client_secret'];
 const redirectUri = process.env['redirect_uri'];
-const refreshToken = process.env['refresh_token'];
 
 const auth = new google.auth.OAuth2(clientId, clientSecret, redirectUri);
 auth.refreshAccessToken((err, tokens) => {
   if (err) {
     console.log(err);
-    return null;
+    return;
   }
 
-  auth.setCredentials({refreshToken: tokens.refresh_token});
+  auth.setCredentials({ refreshToken: tokens.refresh_token });
 })
-const driveService = google.drive({version: 'v3', auth});
+const driveService = google.drive({ version: 'v3', auth });
 
 const cachePath = path.join(__dirname, '../', 'cache');
 
@@ -44,29 +43,29 @@ async function uploadPostPhoto(bot, fileObj) {
 
   const fileId = fileObj.file_id;
   const newFilePath = await bot.downloadFile(fileId, cacheFileDirPath)
-      .catch(console.log);
+    .catch(console.log);
 
   const fileReadStream = fs.createReadStream(newFilePath);
 
   return await driveService.files
-      .create({
-        media: {
-          mimeType: fileObj.mime_type,
-          body: fileReadStream,
-        },
-        requestBody: {
-          name: fileObj.file_name,
-          parents: [parentsId],
-        },
-        fields: 'id',
-      })
-      .then(async (data) => {
-        return await generatePublicUrl(data.data.id);
-      })
-      .catch((e) => {
-        console.log(e);
-        return null;
-      });
+    .create({
+      media: {
+        mimeType: fileObj.mime_type,
+        body: fileReadStream,
+      },
+      requestBody: {
+        name: fileObj.file_name,
+        parents: [parentsId],
+      },
+      fields: 'id',
+    })
+    .then(async (data) => {
+      return await generatePublicUrl(data.data.id);
+    })
+    .catch((e) => {
+      console.log(e);
+      return null;
+    });
 }
 
 /**
@@ -89,4 +88,4 @@ async function generatePublicUrl(fileId) {
   }
 }
 
-module.exports = {uploadPostPhoto};
+module.exports = { uploadPostPhoto };
