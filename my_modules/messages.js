@@ -97,8 +97,8 @@ function generateCaption(post, withContacts = false, withId = true) {
   if (withId) result += `_${post._id}_\n\n`;
 
   if (withContacts) {
-    result += `${post.about}\n`;
-    result += `${post.contacts}\n\n`;
+    result += `${post.about}\n\n`;
+    result += `Контакты: ${post.contacts}\n\n`;
   } else {
     result += `${post.about}\n\n`;
   }
