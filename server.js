@@ -24,7 +24,7 @@ const PORT = process.env.PORT || config.get('PORT');
 const token = process.env.TOKEN || '';
 
 const app = express();
-const bot = new TelegramBot(token, { polling: true });
+const bot = new TelegramBot(token, {polling: true});
 
 const clientInfo = {};
 
@@ -40,11 +40,11 @@ function start() {
       const options = {
         reply_markup: {
           keyboard: [
-            [{text: "Поиск"}, {text: "Подать объявление"}]
+            [{text: 'Поиск'}, {text: 'Подать объявление'}],
           ],
-          resize_keyboard: true
-        }
-      }
+          resize_keyboard: true,
+        },
+      };
       return await send(message, startMessageText, options);
     });
 
@@ -86,9 +86,9 @@ function start() {
     bot.onText(textOptions.cls, async (msg) => {
       const removeMessage = async (i = 0) => {
         return await bot
-          .deleteMessage(msg.chat.id, msg.message_id - i)
-          .then(() => removeMessage(i + 1))
-          .catch(() => msg.message_id - i > 0 && removeMessage(i + 1));
+            .deleteMessage(msg.chat.id, msg.message_id - i)
+            .then(() => removeMessage(i + 1))
+            .catch(() => msg.message_id - i > 0 && removeMessage(i + 1));
       };
       removeMessage();
     });
@@ -105,7 +105,7 @@ function start() {
 
     bot.on('callback_query', async (query) => {
       if (!clientInfo[query.from.id]) {
-        clientInfo[query.from.id] = { page: 0, prevMessage: null };
+        clientInfo[query.from.id] = {page: 0, prevMessage: null};
       }
 
       const currentMessage = clientInfo[query.from.id].prevMessage;
@@ -114,7 +114,8 @@ function start() {
 
       switch (query.data) {
         case 'prev_page':
-          clientInfo[query.from.id].page = (clientInfo[query.from.id].page - 1) || 0;
+          const currentPage = clientInfo[query.from.id].page;
+          clientInfo[query.from.id].page = (currentPage - 1) || 0;
           clientInfo[query.from.id].prevMessage = prevMessage;
           break;
         case 'next_page':
@@ -150,12 +151,12 @@ async function searchHandle(message, prevMessage) {
   let postList = await search(currentPage, message, send, remove);
 
   if (!postList?.length) {
-    clientInfo[message.chat.id].page = 0
+    clientInfo[message.chat.id].page = 0;
     postList = await search(0, message, send, remove);
 
     if (!postList.length) {
-      const messageEnd = messageList.search.end
-      return await send(message, messageEnd)
+      const messageEnd = messageList.search.end;
+      return await send(message, messageEnd);
     }
   }
 
@@ -169,19 +170,19 @@ async function searchHandle(message, prevMessage) {
     reply_markup: {
       inline_keyboard: [
         [
-          { text: 'Назад', callback_data: 'prev_page' },
-          { text: 'Далее', callback_data: 'next_page' },
+          {text: 'Назад', callback_data: 'prev_page'},
+          {text: 'Далее', callback_data: 'next_page'},
         ],
       ],
     },
-    parse_mode: "MarkdownV2"
+    parse_mode: 'MarkdownV2',
   };
 
   if (!currentPost.contacts) {
     const contact = [
-      { text: 'Связаться', url: `https://telegram.me/${owner.username}` }
-    ]
-    options.reply_markup.inline_keyboard.unshift(contact)
+      {text: 'Связаться', url: `https://telegram.me/${owner.username}`},
+    ];
+    options.reply_markup.inline_keyboard.unshift(contact);
   }
 
   const photoLink = postList[0].photo;
@@ -191,7 +192,7 @@ async function searchHandle(message, prevMessage) {
   }
 
   return await bot.sendPhoto(message.chat.id, photoLink, options)
-    .catch((e) => console.log(e));
+      .catch((e) => console.log(e));
 }
 
 /**
@@ -243,7 +244,7 @@ async function remove(message, currentMessage) {
 function checkClientInfo(id) {
   if (clientInfo[id]) return;
 
-  clientInfo[id] = { page: 0, prevMessage: null };
+  clientInfo[id] = {page: 0, prevMessage: null};
   return;
 }
 

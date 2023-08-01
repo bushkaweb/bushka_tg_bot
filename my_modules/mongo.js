@@ -6,8 +6,8 @@ const path = require('path');
 const fs = require('fs');
 const uuid = require('uuid').v4;
 
-const { messageList } = require('../my_modules/messages');
-const { uploadPostPhoto } = require('../my_modules/google');
+const {messageList} = require('../my_modules/messages');
+const {uploadPostPhoto} = require('../my_modules/google');
 
 const mongoUri = process.env.MongoUri;
 const cachePath = path.join(__dirname, '../', 'cache');
@@ -18,12 +18,12 @@ const cachePath = path.join(__dirname, '../', 'cache');
 function connectToMongoDB() {
   mongoose.set('strictQuery', true);
   mongoose
-    .connect(mongoUri)
-    .then(() => console.log('Connect to mongodb'))
-    .catch((e) => {
-      console.error(e);
-      console.log('Failed to connect to mongodb');
-    });
+      .connect(mongoUri)
+      .then(() => console.log('Connect to mongodb'))
+      .catch((e) => {
+        console.error(e);
+        console.log('Failed to connect to mongodb');
+      });
 }
 
 /**
@@ -33,7 +33,7 @@ function connectToMongoDB() {
  * @return {*}
  */
 function findUserById(id) {
-  return User.findOne({ id });
+  return User.findOne({id});
 }
 
 /**
@@ -49,14 +49,14 @@ async function search(page, message, send, remove) {
   const loadingMessage = await send(message, messageList.search.loading);
 
   return await Post.find()
-    .limit(1)
-    .sort({ $natural: -1 })
-    .skip(page)
-    .catch(console.log)
-    .finally(async (result) => {
-      await remove(message, loadingMessage);
-      return result;
-    });
+      .limit(1)
+      .sort({$natural: -1})
+      .skip(page)
+      .catch(console.log)
+      .finally(async (result) => {
+        await remove(message, loadingMessage);
+        return result;
+      });
 }
 
 /**
@@ -71,15 +71,15 @@ async function search(page, message, send, remove) {
 async function searchById(message, id, send, remove) {
   const loadingMessage = await send(message, messageList.search.loading);
   return await Post.findById(id)
-    .then(async (post) => {
-      await remove(message, loadingMessage);
-      return post;
-    })
-    .catch(async (e) => {
-      await remove(message, loadingMessage);
-      console.log(e);
-      return null;
-    });
+      .then(async (post) => {
+        await remove(message, loadingMessage);
+        return post;
+      })
+      .catch(async (e) => {
+        await remove(message, loadingMessage);
+        console.log(e);
+        return null;
+      });
 }
 
 /**
@@ -91,7 +91,7 @@ async function searchById(message, id, send, remove) {
 async function login(userInfo) {
   const candidate = await findUserById(userInfo.id);
   if (!candidate) {
-    const user = new User({ ...userInfo, roles: ["USER"] });
+    const user = new User({...userInfo, roles: ['USER']});
     await user.save();
   }
 }
@@ -131,7 +131,7 @@ async function postHandler(bot, message, send, remove) {
         reply_markup: {
           force_reply: true,
         },
-        parse_mode: "MarkdownV2"
+        parse_mode: 'MarkdownV2',
       };
 
       if (!fs.existsSync(cachePath)) {
@@ -155,24 +155,24 @@ async function postHandler(bot, message, send, remove) {
       fs.rmdirSync(cacheFileDirPath);
 
       return await bot.onReplyToMessage(
-        message.chat.id,
-        confirmPrompt.message_id,
-        async (messageConfirm) => {
-          if (
-            messageConfirm.text.toUpperCase() === 'ДА' ||
+          message.chat.id,
+          confirmPrompt.message_id,
+          async (messageConfirm) => {
+            if (
+              messageConfirm.text.toUpperCase() === 'ДА' ||
             messageConfirm.text === 'y'
-          ) {
-            return post(bot, newPost, message, send, remove);
-          } else if (
-            messageConfirm.text.toUpperCase() === 'НЕТ' ||
+            ) {
+              return post(bot, newPost, message, send, remove);
+            } else if (
+              messageConfirm.text.toUpperCase() === 'НЕТ' ||
             messageConfirm.text === 'n'
-          ) {
-            questionNow = false;
-            return postHandler(bot, message, send, remove);
-          } else {
-            return checkConfirm();
-          }
-        },
+            ) {
+              questionNow = false;
+              return postHandler(bot, message, send, remove);
+            } else {
+              return checkConfirm();
+            }
+          },
       );
     } catch (e) {
       console.log(e);
@@ -187,28 +187,31 @@ async function postHandler(bot, message, send, remove) {
 
   const messagePhotoHandler = async (messagePhoto) => {
     if (messagePhoto?.document || !messagePhoto.photo) {
-
-      const postPhotoPrompt = await send(message, messageList.newPost.photoError, {
-        reply_markup: { force_reply: true },
-      });
+      const postPhotoPrompt = await send(
+          message,
+          messageList.newPost.photoError,
+          {
+            reply_markup: {force_reply: true},
+          },
+      );
 
       return await bot.onReplyToMessage(
-        message.chat.id,
-        postPhotoPrompt.message_id,
-        messagePhotoHandler,
+          message.chat.id,
+          postPhotoPrompt.message_id,
+          messagePhotoHandler,
       );
     }
 
     newPost.photo = messagePhoto.photo[messagePhoto.photo.length - 1];
 
     const postPricePrompt = await send(message, messageList.newPost.price, {
-      reply_markup: { force_reply: true },
+      reply_markup: {force_reply: true},
     });
 
     return await bot.onReplyToMessage(
-      message.chat.id,
-      postPricePrompt.message_id,
-      messagePriceHandler,
+        message.chat.id,
+        postPricePrompt.message_id,
+        messagePriceHandler,
     );
   };
 
@@ -216,13 +219,13 @@ async function postHandler(bot, message, send, remove) {
     newPost.about = messageAbout.text;
 
     const postPhotoPrompt = await send(message, messageList.newPost.photo, {
-      reply_markup: { force_reply: true },
+      reply_markup: {force_reply: true},
     });
 
     return await bot.onReplyToMessage(
-      message.chat.id,
-      postPhotoPrompt.message_id,
-      messagePhotoHandler,
+        message.chat.id,
+        postPhotoPrompt.message_id,
+        messagePhotoHandler,
     );
   };
 
@@ -232,41 +235,41 @@ async function postHandler(bot, message, send, remove) {
     }
 
     const postAboutPrompt = await send(message, messageList.newPost.about, {
-      reply_markup: { force_reply: true },
+      reply_markup: {force_reply: true},
     });
 
     newPost.contacts = messageContacts.text;
 
     return await bot.onReplyToMessage(
-      message.chat.id,
-      postAboutPrompt.message_id,
-      messageAboutHandler,
+        message.chat.id,
+        postAboutPrompt.message_id,
+        messageAboutHandler,
     );
   };
 
   if (message.from.username) {
     const postAboutPrompt = await send(message, messageList.newPost.about, {
-      reply_markup: { force_reply: true },
+      reply_markup: {force_reply: true},
     });
 
     return await bot.onReplyToMessage(
-      message.chat.id,
-      postAboutPrompt.message_id,
-      messageAboutHandler,
+        message.chat.id,
+        postAboutPrompt.message_id,
+        messageAboutHandler,
     );
   }
 
   const postContactsPrompt = await send(
-    message,
-    messageList.newPost.noUserName, {
-    reply_markup: { force_reply: true },
-  },
+      message,
+      messageList.newPost.noUserName, {
+        reply_markup: {force_reply: true},
+      },
   );
 
   return await bot.onReplyToMessage(
-    message.chat.id,
-    postContactsPrompt.message_id,
-    messageContactsHandler,
+      message.chat.id,
+      postContactsPrompt.message_id,
+      messageContactsHandler,
   );
 }
 
@@ -294,16 +297,16 @@ async function post(bot, postInfo, message, send, remove) {
   });
 
   return await post
-    .save()
-    .then(async (res) => {
-      await remove(message, loadingMessage);
-      await send(message, messageList.newPost.success);
-      return res;
-    })
-    .catch(async (e) => {
-      console.error(e);
-      return await send(message, messageList.newPost.error);
-    });
+      .save()
+      .then(async (res) => {
+        await remove(message, loadingMessage);
+        await send(message, messageList.newPost.success);
+        return res;
+      })
+      .catch(async (e) => {
+        console.error(e);
+        return await send(message, messageList.newPost.error);
+      });
 }
 
 /**
@@ -316,43 +319,46 @@ async function post(bot, postInfo, message, send, remove) {
  */
 async function removePostById(message, id, send) {
   return await Post.findById(id)
-    .then(async (candidate) => {
-      if (!candidate) {
-        await send(message, messageList.deletePost.notFound(id));
-        return null;
-      }
+      .then(async (candidate) => {
+        if (!candidate) {
+          await send(message, messageList.deletePost.notFound(id));
+          return null;
+        }
 
-      const user = await findUserById(message.from.id)
+        const user = await findUserById(message.from.id);
 
-      if (!user?._id) {
-        await send(message, messageList.deletePost.error);
-        return null
-      }
-
-      if (candidate.owner !== message.from.id && !user.roles.includes("ADMIN")) {
-        await send(message, messageList.deletePost.noAccess);
-        return null;
-      }
-
-      return await Post.findByIdAndDelete(id)
-        .then(async (post) => {
-          await send(message, messageList.deletePost.success);
-          return post;
-        })
-        .catch(async (e) => {
-          console.log(e);
+        if (!user?._id) {
           await send(message, messageList.deletePost.error);
           return null;
-        });
-    })
-    .catch(async (e) => {
-      if (e?.kind === 'ObjectId') {
-        await send(message, messageList.deletePost.notFound(id));
-      }
+        }
 
-      console.log(e);
-      return null;
-    });
+        if (
+          candidate.owner !== message.from.id &&
+        !user.roles.includes('ADMIN')
+        ) {
+          await send(message, messageList.deletePost.noAccess);
+          return null;
+        }
+
+        return await Post.findByIdAndDelete(id)
+            .then(async (post) => {
+              await send(message, messageList.deletePost.success);
+              return post;
+            })
+            .catch(async (e) => {
+              console.log(e);
+              await send(message, messageList.deletePost.error);
+              return null;
+            });
+      })
+      .catch(async (e) => {
+        if (e?.kind === 'ObjectId') {
+          await send(message, messageList.deletePost.notFound(id));
+        }
+
+        console.log(e);
+        return null;
+      });
 }
 
 module.exports = {

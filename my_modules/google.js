@@ -18,19 +18,21 @@ const refreshTokenDelay = config.get('REFRESH_TOKEN_DELAY');
  * Update Google OAuth refresh token
  */
 async function updateRefreshAndAccessToken() {
-  const content = fs.readFileSync("/etc/secrets/token.json")
-  const tokens = JSON.parse(content)
-  auth.setCredentials(tokens)
+  const content = fs.readFileSync('/etc/secrets/token.json');
+  const tokens = JSON.parse(content);
+  auth.setCredentials(tokens);
 }
 
 /**
  * Start auth
  */
 function start() {
-  updateRefreshAndAccessToken()
-  setInterval(() => {updateRefreshAndAccessToken()}, refreshTokenDelay);
+  updateRefreshAndAccessToken();
+  setInterval(() => {
+    updateRefreshAndAccessToken();
+  }, refreshTokenDelay);
 }
-start()
+start();
 
 const driveService = google.drive({version: 'v3', auth});
 
