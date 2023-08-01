@@ -54,7 +54,6 @@ function start() {
 
     bot.onText(textOptions.search, async (message) => {
       checkClientInfo();
-      await clearChat(message)
 
       const currentMessage = clientInfo[message.chat.id]?.prevMessage;
       const prevMessage = await searchHandle(message, currentMessage);
@@ -68,8 +67,7 @@ function start() {
     });
 
     bot.onText(textOptions.newPost, async (message) => {
-      await postHandler(bot, message, send, remove);
-      return await clearChat(message)
+      return await postHandler(bot, message, send, remove);
     });
 
     bot.onText(textOptions.deletePost, async (message) => {
