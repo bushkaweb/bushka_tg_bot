@@ -6,6 +6,7 @@ const Post = new Schema({
   price: {type: Number, require: true},
   owner: {type: Number, require: true},
   date: {type: String, require: true},
+  isVerified: {type: Boolean, require: true},
 });
 
 const PostModel = model('Post', Post);

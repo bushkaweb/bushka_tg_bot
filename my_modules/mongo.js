@@ -39,24 +39,35 @@ function findUserById(id) {
 /**
  * Search posts by page
  *
- * @param {Number} page
+ * @param {*} bot
+ * @param {*} page
  * @param {*} message
- * @param {Function} send
- * @param {Function} remove
+ * @param {*} send
+ * @param {*} remove
+ * @param {*} searchOptions
  * @return {*}
  */
-async function search(page, message, send, remove) {
-  const loadingMessage = await send(message, messageList.search.loading);
+async function search(
+    bot, page, message,
+    send, remove, searchOptions = {isVerified: true},
+) {
+  const loadingMessage = await send(bot, message, messageList.search.loading);
 
-  if (page < 0) return null;
+  if (page < 0) {
+    await remove(bot, message, loadingMessage);
+    return [];
+  }
 
-  return await Post.find()
+  return await Post.find(searchOptions)
       .limit(1)
       .sort({$natural: -1})
       .skip(page)
-      .catch(console.log)
+      .catch(async (error) => {
+        console.log(error);
+        return [];
+      })
       .finally(async (result) => {
-        await remove(message, loadingMessage);
+        await remove(bot, message, loadingMessage);
         return result;
       });
 }
@@ -64,23 +75,27 @@ async function search(page, message, send, remove) {
 /**
  * Search post by id
  *
+ * @param {*} bot
  * @param {*} message
- * @param {Number} id
- * @param {Function} send
- * @param {Function} remove
+ * @param {*} id
+ * @param {*} send
+ * @param {*} remove
+ * @param {*} searchOptions
  * @return {*}
  */
-async function searchById(message, id, send, remove) {
-  const loadingMessage = await send(message, messageList.search.loading);
-  return await Post.findById(id)
-      .then(async (post) => {
-        await remove(message, loadingMessage);
-        return post;
-      })
+async function searchPostById(
+    bot, message, id, send,
+    remove, searchOptions = {isVerified: true},
+) {
+  const loadingMessage = await send(bot, message, messageList.search.loading);
+  return await Post.findOne({_id: id, ...searchOptions})
       .catch(async (e) => {
-        await remove(message, loadingMessage);
         console.log(e);
-        return null;
+        return [];
+      })
+      .finally((result) => {
+        remove(bot, message, loadingMessage);
+        return result;
       });
 }
 
@@ -124,6 +139,7 @@ async function postHandler(bot, message, send, remove) {
     photo: '',
     owner: message.from.id,
     date,
+    isVerified: false,
   };
 
   const checkConfirm = async () => {
@@ -190,6 +206,7 @@ async function postHandler(bot, message, send, remove) {
   const messagePhotoHandler = async (messagePhoto) => {
     if (messagePhoto?.document || !messagePhoto.photo) {
       const postPhotoPrompt = await send(
+          bot,
           message,
           messageList.newPost.photoError,
           {
@@ -206,9 +223,14 @@ async function postHandler(bot, message, send, remove) {
 
     newPost.photo = messagePhoto.photo[messagePhoto.photo.length - 1];
 
-    const postPricePrompt = await send(message, messageList.newPost.price, {
+    const options = {
       reply_markup: {force_reply: true},
-    });
+    };
+
+    const postPricePrompt = await send(
+        bot, message,
+        messageList.newPost.price, options,
+    );
 
     return await bot.onReplyToMessage(
         message.chat.id,
@@ -220,9 +242,14 @@ async function postHandler(bot, message, send, remove) {
   const messageAboutHandler = async (messageAbout) => {
     newPost.about = messageAbout.text;
 
-    const postPhotoPrompt = await send(message, messageList.newPost.photo, {
+    const options = {
       reply_markup: {force_reply: true},
-    });
+    };
+
+    const postPhotoPrompt = await send(
+        bot, message,
+        messageList.newPost.photo, options,
+    );
 
     return await bot.onReplyToMessage(
         message.chat.id,
@@ -231,7 +258,7 @@ async function postHandler(bot, message, send, remove) {
     );
   };
 
-  const postAboutPrompt = await send(message, messageList.newPost.about, {
+  const postAboutPrompt = await send(bot, message, messageList.newPost.about, {
     reply_markup: {force_reply: true},
   });
 
@@ -243,7 +270,7 @@ async function postHandler(bot, message, send, remove) {
 }
 
 /**
- * Post a post to the MongoDb
+ * Post a announcement to the MongoDb
  *
  * @param {*} bot
  * @param {*} postInfo
@@ -253,11 +280,11 @@ async function postHandler(bot, message, send, remove) {
  * @return {*}
  */
 async function post(bot, postInfo, message, send, remove) {
-  const loadingMessage = await send(message, messageList.newPost.loading);
+  const loadingMessage = await send(bot, message, messageList.newPost.loading);
   const photoDriveLink = await uploadPostPhoto(bot, postInfo.photo);
 
   if (!photoDriveLink) {
-    return await send(message, messageList.newPost.error);
+    return await send(bot, message, messageList.newPost.error);
   }
 
   const post = new Post({
@@ -268,36 +295,37 @@ async function post(bot, postInfo, message, send, remove) {
   return await post
       .save()
       .then(async (res) => {
-        await remove(message, loadingMessage);
-        await send(message, messageList.newPost.success);
+        await remove(bot, message, loadingMessage);
+        await send(bot, message, messageList.newPost.success);
         return res;
       })
       .catch(async (e) => {
         console.error(e);
-        return await send(message, messageList.newPost.error);
+        return await send(bot, message, messageList.newPost.error);
       });
 }
 
 /**
  * Remove post by id
  *
+ * @param {*} bot
  * @param {*} message
- * @param {Number} id
- * @param {Function} send
+ * @param {*} id
+ * @param {*} send
  * @return {*}
  */
-async function removePostById(message, id, send) {
+async function removePostById(bot, message, id, send) {
   return await Post.findById(id)
       .then(async (candidate) => {
         if (!candidate) {
-          await send(message, messageList.deletePost.notFound(id));
+          await send(bot, message, messageList.deletePost.notFound(id));
           return null;
         }
 
         const user = await findUserById(message.from.id);
 
         if (!user?._id) {
-          await send(message, messageList.deletePost.error);
+          await send(bot, message, messageList.deletePost.error);
           return null;
         }
 
@@ -305,18 +333,18 @@ async function removePostById(message, id, send) {
           candidate.owner !== message.from.id &&
         !user.roles.includes('ADMIN')
         ) {
-          await send(message, messageList.deletePost.noAccess);
+          await send(bot, message, messageList.deletePost.noAccess);
           return null;
         }
 
         return await Post.findByIdAndDelete(id)
             .then(async (post) => {
-              await send(message, messageList.deletePost.success);
+              await send(bot, message, messageList.deletePost.success);
               return post;
             })
             .catch(async (e) => {
               console.log(e);
-              await send(message, messageList.deletePost.error);
+              await send(bot, message, messageList.deletePost.error);
               return null;
             });
       })
@@ -330,6 +358,32 @@ async function removePostById(message, id, send) {
       });
 }
 
+/* ----------------- ADMIN --------------- */
+
+/**
+ * [Admin function]
+ * Verify post by id
+ *
+ * @param {*} id
+ * @param {*} isVerified
+ * @return {*}
+ */
+async function verifyPost(id, isVerified) {
+  if (isVerified) {
+    return Post.findByIdAndUpdate(id, {isVerified: true})
+        .catch((e) => {
+          console.log(e);
+          return null;
+        });
+  }
+
+  return Post.findByIdAndRemove(id)
+      .catch((e) => {
+        console.log(e);
+        return null;
+      });
+}
+
 module.exports = {
   connectToMongoDB,
   findUserById,
@@ -338,5 +392,7 @@ module.exports = {
   post,
   removePostById,
   search,
-  searchById,
+  searchPostById,
+
+  verifyPost,
 };
