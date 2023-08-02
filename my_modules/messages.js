@@ -9,7 +9,7 @@ const textOptions = {
   myProfile: /^(\/myProfile)$/,
   cls: /^(\/cls)$/,
 
-  verifyPost: /^((\/v)||✅Верификация)$/,
+  searchPostToVerify: /^((\/v)||✅Верификация)$/,
   verifyPostById: /^((\/vi)||✅Верификация по id)$/,
 };
 

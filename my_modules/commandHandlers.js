@@ -323,6 +323,17 @@ async function callbackQueryHandler(bot, query) {
 
 /**
  * [Admin function]
+ * Search post to verify handler
+ *
+ * @param {*} bot
+ * @param {*} message
+ */
+function searchPostToVerifyHandler(bot, message) {
+  searchHandler(bot, message, {isVerified: false});
+}
+
+/**
+ * [Admin function]
  * Verify post handler
  *
  * @param {*} bot
@@ -402,7 +413,6 @@ async function verifyPostByIdHandler(bot, message) {
     }
 
     const owner = await mongo.findUserById(post.owner);
-
     const caption = myMessages.generateCaption(post);
 
     const options = {
@@ -526,6 +536,7 @@ module.exports = {
   clsHandler,
   allMessageHandler,
   callbackQueryHandler,
+  searchPostToVerifyHandler,
   verifyPostHandler,
   verifyPostByIdHandler,
 };
