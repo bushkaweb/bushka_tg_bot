@@ -358,7 +358,7 @@ function verifyPostHandler(bot, postMessage, state) {
  * @param {*} message
  * @return {*}
  */
-async function verifyByIdHandler(bot, message) {
+async function verifyPostByIdHandler(bot, message) {
   const user = await mongo.findUserById(message.from.id);
 
   if (!user) {
@@ -526,6 +526,6 @@ module.exports = {
   clsHandler,
   allMessageHandler,
   callbackQueryHandler,
-  verifyHandler,
-  verifyByIdHandler,
+  verifyPostHandler,
+  verifyPostByIdHandler,
 };

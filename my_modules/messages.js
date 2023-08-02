@@ -9,8 +9,8 @@ const textOptions = {
   myProfile: /^(\/myProfile)$/,
   cls: /^(\/cls)$/,
 
-  verify: /^((\/v)||✅Верификация)$/,
-  verifyById: /^((\/vi)||✅Верификация по id)$/,
+  verifyPost: /^((\/v)||✅Верификация)$/,
+  verifyPostById: /^((\/vi)||✅Верификация по id)$/,
 };
 
 const messageList = {
