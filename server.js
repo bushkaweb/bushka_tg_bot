@@ -21,15 +21,16 @@ function start() {
   try {
     mongo.connectToMongoDB();
 
+    bot.on('message', (message) => {
+      commandHandlers.allMessageHandler(bot, message);
+    });
+
     Object.keys(textOptions).map((key) => {
       bot.onText(textOptions[key], (message) => {
         commandHandlers[`${key}Handler`](bot, message);
       });
     });
-
-    bot.on('message', (message) => {
-      commandHandlers.allMessageHandler(bot, message);
-    });
+    
     bot.on('callback_query', (query) => {
       commandHandlers.callbackQueryHandler(bot, query);
     });

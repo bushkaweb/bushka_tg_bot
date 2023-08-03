@@ -27,9 +27,7 @@ async function startHandler(bot, message) {
   const user = await mongo.findUserById(message.from.id);
 
   if (!user) {
-    mongo.login(message.from)
-    send(bot, message, myMessages.messageList.somethingWentWrong)
-    return;
+    await mongo.login(message.from)
   }
 
   if (user.roles.includes('ADMIN')) {
@@ -264,8 +262,8 @@ function clsHandler(bot, message) {
  * @param {*} bot
  * @param {*} message
  */
-function allMessageHandler(bot, message) {
-  mongo.login(message.from)
+async function allMessageHandler(bot, message) {
+  await mongo.login(message.from)
   checkClientInfo();
 
   if (
