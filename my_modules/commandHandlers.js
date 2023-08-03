@@ -264,6 +264,7 @@ function clsHandler(bot, message) {
  * @param {*} message
  */
 function allMessageHandler(bot, message) {
+  mongo.login(message.from)
   checkClientInfo();
 
   if (
