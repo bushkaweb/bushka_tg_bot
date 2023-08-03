@@ -153,7 +153,9 @@ async function findPostHandler(bot, message, findOptions = {isVerified: true}) {
  * @param {*} findOptions
  * @return {*}
  */
-async function findPostByIdHandler(bot, message, findOptions) {
+async function findPostByIdHandler(
+    bot, message, findOptions = {isVerified: true},
+) {
   const postIdHandler = async (messagePostId) => {
     const post = await mongo.findPostById(
         bot,
@@ -166,13 +168,18 @@ async function findPostByIdHandler(bot, message, findOptions) {
 
     if (!post) {
       const text = myMessages.messageList.find.notFound(messagePostId.text);
-
-      send(bot,
-          message,
-          text,
-      );
+      send(bot, message, text);
+      return;
     }
+
+    const caption = myMessages.generateCaption(post);
+    const options = {caption, parse_mode: 'MarkdownV2'};
+    return await sendPhoto(bot, message, post, options);
   };
+
+  if (findOptions._id) {
+    return await postIdHandler({text: findOptions._id});
+  }
 
   const postIdPrompt = send(
       bot, message,
@@ -280,7 +287,7 @@ async function callbackQueryHandler(bot, query) {
 
   const currentPage = clientInfo[query.from.id].page;
 
-  var prevMessage;
+  let prevMessage;
 
   switch (query.data) {
     case 'prev_page':
@@ -316,10 +323,60 @@ async function callbackQueryHandler(bot, query) {
       break;
   }
 
+  const regexp = /^(find_post_\w+)$/;
+
+  if (regexp.test(query.data)) {
+    clientInfo[query.message.chat.id].page = 0;
+    const findOptions = {_id: query.data.split('_')[2], isVerified: true};
+    await findPostByIdHandler(bot, query.message, findOptions);
+  }
+
   clientInfo[query.from.id].prevMessage = prevMessage;
 }
 
 /* ------------------------ ADMIN ---------------------- */
+
+/**
+ * [Admin function] [private]
+ * Verify post handler
+ *
+ * @param {*} bot
+ * @param {*} postMessage
+ * @param {Boolean} state
+ */
+async function verifyPostHandler(bot, postMessage, state) {
+  const postId = postMessage.caption.split('\n')[0];
+
+  const post = await mongo.verifyPost(postId, state);
+
+  if (!post) {
+    send(
+        bot, postMessage,
+        myMessages.messageList.somethingWentWrong,
+    );
+    return;
+  }
+
+  const text = myMessages.messageList.admin[
+    state ? 'acceptSuccess' : 'denySuccess'
+  ];
+
+  const options = {
+    reply_markup: {
+      inline_keyboard: [
+        [
+          {
+            text: 'Посмотреть объявление',
+            callback_data: `find_post_${post._id}`,
+          },
+        ],
+      ],
+    },
+  };
+
+  send(bot, postMessage, text);
+  bot.sendMessage(post.owner, myMessages.messageList.newPost.publish, options);
+}
 
 /**
  * [Admin function]
@@ -334,42 +391,13 @@ function findPostToVerifyHandler(bot, message) {
 
 /**
  * [Admin function]
- * Verify post handler
- *
- * @param {*} bot
- * @param {*} postMessage
- * @param {Boolean} state
- */
-function verifyPostHandler(bot, postMessage, state) {
-  const postId = postMessage.caption.split('\n')[0];
-
-  const post = mongo.verifyPost(postId, state);
-
-  if (!post) {
-    send(
-        bot, postMessage,
-        myMessages.messageList.somethingWentWrong,
-    );
-    return;
-  }
-
-  send(
-      bot, postMessage,
-      myMessages.messageList.admin[
-    state ? 'acceptSuccess' : 'denySuccess'
-      ],
-  );
-}
-
-/**
- * [Admin function]
  * Verify post by id handler
  *
  * @param {*} bot
  * @param {*} message
  * @return {*}
  */
-async function verifyPostByIdHandler(bot, message) {
+async function findPostToVerifyByIdHandler(bot, message) {
   const user = await mongo.findUserById(message.from.id);
 
   if (!user) {
@@ -454,6 +482,7 @@ async function verifyPostByIdHandler(bot, message) {
 /* ------------------------ OTHER ---------------------- */
 
 /**
+ * [private]
  * Send message
  *
  * @param {*} bot
@@ -467,6 +496,7 @@ async function send(bot, message, text, props) {
 }
 
 /**
+ * [private]
  * Send photo
  *
  * @param {*} bot
@@ -498,6 +528,7 @@ function clearChat(bot, message, i = 0) {
 }
 
 /**
+ * [private]
 * Check client info and fill it
 *
 * @param {Number} id
@@ -511,6 +542,7 @@ function checkClientInfo(id) {
 }
 
 /**
+ * [private]
  * Remove message
  *
  * @param {*} bot
@@ -536,7 +568,7 @@ module.exports = {
   clsHandler,
   allMessageHandler,
   callbackQueryHandler,
-  findPostToVerifyHandler,
   verifyPostHandler,
-  verifyPostByIdHandler,
+  findPostToVerifyHandler,
+  findPostToVerifyByIdHandler,
 };

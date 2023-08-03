@@ -10,7 +10,7 @@ const textOptions = {
   cls: /^(\/cls)$/,
 
   findPostToVerify: /^((\/v)||✅Верификация)$/,
-  verifyPostById: /^((\/vi)||✅Верификация по id)$/,
+  findPostToVerifyByIdHandler: /^((\/vi)||✅Верификация по id)$/,
 };
 
 const messageList = {
@@ -18,7 +18,7 @@ const messageList = {
   help: `Этот бот умеет:${getBotCan()}`,
   find: {
     end: 'Больше объявлений нет.',
-    notFound: 'Объявление не найдено.',
+    notFound: (id) => `Объявление с id '${id}' не найдено.`,
     loading: 'Ищу товар...',
   },
   newPost: {
@@ -27,14 +27,15 @@ const messageList = {
     photo: 'Пришлите фото объявления в сжатом виде.',
     // eslint-disable-next-line
     confirm: (post) => `Все верно?\n\n${generateCaption(post, false)}\n\nНапишите "Да" или "Нет"`,
-    success: 'Объявление успешно опубликовано!',
+    success: 'Объявление успешно отправлено на модерацию!',
     photoError: 'Ошибка. Пришлите фото объявления в сжатом виде.',
     error: 'Что-то пошло не так.',
+    publish: 'Ваше объявление успешно прошло модерацию и опубликовано!',
     loading: 'Публикую объявление...',
   },
   deletePost: {
     // eslint-disable-next-line
-    noAccess: 'Вы не можете удалить это объявление, оно пренадлежит другому пользователю.',
+    noAccess: 'Вы не можете удалить это объявление, оно принадлежит другому пользователю.',
     success: 'Объявление успешно удалено!',
     notFound: (id) => `Объявление с id '${id}' не найдено.`,
     error: 'Что-то пошло не так.',
