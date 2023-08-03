@@ -156,21 +156,19 @@ async function postHandler(bot, message, send, remove) {
         fs.mkdirSync(cachePath);
       }
 
-      const cacheFileDir = uuid();
-      const cacheFileDirPath = path.join(cachePath, cacheFileDir);
+      const dirId = uuid();
+      const dirPath = path.join(cachePath, dirId);
 
-      if (!fs.existsSync(cacheFileDirPath)) {
-        fs.mkdirSync(cacheFileDirPath);
-      }
+      fs.mkdirSync(dirPath);
 
       const fileId = newPost.photo.file_id;
       const chatId = message.chat.id;
 
-      const filePath = await bot.downloadFile(fileId, cacheFileDirPath);
+      const filePath = await bot.downloadFile(fileId, dirPath);
       const confirmPrompt = await bot.sendPhoto(chatId, filePath, options);
 
       fs.unlinkSync(filePath);
-      fs.rmdirSync(cacheFileDirPath);
+      fs.rmdirSync(dirPath);
 
       return await bot.onReplyToMessage(
           message.chat.id,

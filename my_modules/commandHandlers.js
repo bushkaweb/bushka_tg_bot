@@ -361,6 +361,8 @@ async function verifyPostHandler(bot, postMessage, state) {
     state ? 'acceptSuccess' : 'denySuccess'
   ];
 
+  send(bot, postMessage, text);
+
   const options = {
     reply_markup: {
       inline_keyboard: [
@@ -374,8 +376,13 @@ async function verifyPostHandler(bot, postMessage, state) {
     },
   };
 
-  send(bot, postMessage, text);
-  bot.sendMessage(post.owner, myMessages.messageList.newPost.publish, options);
+  if (state) {
+    const text = myMessages.messageList.newPost.publish;
+    bot.sendMessage(post.owner, text, options);
+  } else {
+    const text = myMessages.messageList.newPost.deny;
+    bot.sendMessage(post.owner, text);
+  }
 }
 
 /**

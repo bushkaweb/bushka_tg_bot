@@ -47,22 +47,15 @@ const driveService = google.drive({version: 'v3', auth});
  * @return {String}
  */
 async function uploadPostPhoto(bot, fileObj) {
-  if (!fs.existsSync(cachePath)) {
-    fs.mkdirSync(cachePath);
-  }
+  const dirId = uuid();
+  const dirPath = path.join(cachePath, dirId);
 
-  const cacheFileDir = uuid();
-  const cacheFileDirPath = path.join(cachePath, cacheFileDir);
-
-  if (!fs.existsSync(cacheFileDirPath)) {
-    fs.mkdirSync(cacheFileDirPath);
-  }
+  fs.mkdirSync(dirPath);
 
   const fileId = fileObj.file_id;
-  const newFilePath = await bot.downloadFile(fileId, cacheFileDirPath)
-      .catch(console.log);
+  const filePath = await bot.downloadFile(fileId, dirPath);
 
-  const fileReadStream = fs.createReadStream(newFilePath);
+  const fileReadStream = fs.createReadStream(filePath);
 
   return await driveService.files
       .create({
@@ -82,6 +75,11 @@ async function uploadPostPhoto(bot, fileObj) {
       .catch((e) => {
         console.log(e);
         return null;
+      })
+      .finally((result) => {
+        fs.unlinkSync(filePath);
+        fs.rmdirSync(dirPath);
+        return result;
       });
 }
 
