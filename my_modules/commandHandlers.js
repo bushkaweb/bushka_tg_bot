@@ -28,6 +28,7 @@ async function startHandler(bot, message) {
 
   if (!user) {
     mongo.login(message.from)
+    send(bot, message, myMessages.messageList.somethingWentWrong)
     return;
   }
 
