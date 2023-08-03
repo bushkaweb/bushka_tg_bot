@@ -10,7 +10,7 @@ const textOptions = {
   cls: /^(\/cls)$/,
 
   findPostToVerify: /^((\/v)||✅Верификация)$/,
-  findPostToVerifyByIdHandler: /^((\/vi)||✅Верификация по id)$/,
+  findPostToVerifyById: /^((\/vi)||✅Верификация по id)$/,
 };
 
 const messageList = {
