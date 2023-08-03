@@ -111,7 +111,7 @@ function generateCaption(post, withId = true) {
   result += `${post.about}\n\n`;
   result += `Дата и время публикации:\n${post.date}\n\n`;
   result += `*${post.price}руб*`;
-  result = result.split('.').join('\\.');
+  result = result.split('.').join('\\.').split("(").join("\\(").split(")").join("\\)");
 
   return result;
 }
