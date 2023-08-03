@@ -37,28 +37,28 @@ function findUserById(id) {
 }
 
 /**
- * Search posts by page
+ * Find posts by page
  *
  * @param {*} bot
  * @param {*} page
  * @param {*} message
  * @param {*} send
  * @param {*} remove
- * @param {*} searchOptions
+ * @param {*} findOptions
  * @return {*}
  */
-async function search(
+async function find(
     bot, page, message,
-    send, remove, searchOptions = {isVerified: true},
+    send, remove, findOptions = {isVerified: true},
 ) {
-  const loadingMessage = await send(bot, message, messageList.search.loading);
+  const loadingMessage = await send(bot, message, messageList.find.loading);
 
   if (page < 0) {
     await remove(bot, message, loadingMessage);
     return [];
   }
 
-  return await Post.find(searchOptions)
+  return await Post.find(findOptions)
       .limit(1)
       .sort({$natural: -1})
       .skip(page)
@@ -73,22 +73,22 @@ async function search(
 }
 
 /**
- * Search post by id
+ * find post by id
  *
  * @param {*} bot
  * @param {*} message
  * @param {*} id
  * @param {*} send
  * @param {*} remove
- * @param {*} searchOptions
+ * @param {*} findOptions
  * @return {*}
  */
-async function searchPostById(
+async function findPostById(
     bot, message, id, send,
-    remove, searchOptions = {isVerified: true},
+    remove, findOptions = {isVerified: true},
 ) {
-  const loadingMessage = await send(bot, message, messageList.search.loading);
-  return await Post.findOne({_id: id, ...searchOptions})
+  const loadingMessage = await send(bot, message, messageList.find.loading);
+  return await Post.findOne({_id: id, ...findOptions})
       .catch(async (e) => {
         console.log(e);
         return [];
@@ -391,8 +391,8 @@ module.exports = {
   postHandler,
   post,
   removePostById,
-  search,
-  searchPostById,
+  find,
+  findPostById,
 
   verifyPost,
 };

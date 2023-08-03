@@ -54,29 +54,29 @@ function helpHandler(bot, message) {
 }
 
 /**
- * Search command handler
+ * find command handler
  *
  * @param {*} bot
  * @param {*} message
- * @param {*} searchOptions
+ * @param {*} findOptions
  * @return {*}
  */
-async function searchHandler(bot, message, searchOptions = {isVerified: true}) {
+async function findPostHandler(bot, message, findOptions = {isVerified: true}) {
   checkClientInfo(message.chat.id);
 
   const currentPage = clientInfo[message.chat.id].page;
 
-  let postList = await mongo.search(
+  let postList = await mongo.find(
       bot, currentPage, message,
-      send, remove, searchOptions,
+      send, remove, findOptions,
   );
 
   if (!postList.length) {
     clientInfo[message.chat.id].page = 0;
-    postList = await mongo.search(bot, 0, message, send, remove, searchOptions);
+    postList = await mongo.find(bot, 0, message, send, remove, findOptions);
 
     if (!postList.length) {
-      const messageEnd = myMessages.messageList.search.end;
+      const messageEnd = myMessages.messageList.find.end;
       send(bot, message, messageEnd);
       return;
     }
@@ -104,13 +104,13 @@ async function searchHandler(bot, message, searchOptions = {isVerified: true}) {
         [
           {
             text: 'Назад',
-            callback_data: searchOptions.isVerified ?
+            callback_data: findOptions.isVerified ?
               'prev_page' :
               'prev_page_verify',
           },
           {
             text: 'Далее',
-            callback_data: searchOptions.isVerified ?
+            callback_data: findOptions.isVerified ?
               'next_page' :
               'next_page_verify',
           },
@@ -120,7 +120,7 @@ async function searchHandler(bot, message, searchOptions = {isVerified: true}) {
     parse_mode: 'MarkdownV2',
   };
 
-  if (user.roles.includes('ADMIN') && !searchOptions.isVerified) {
+  if (user.roles.includes('ADMIN') && !findOptions.isVerified) {
     options.reply_markup.inline_keyboard = [
       options.reply_markup.inline_keyboard[0],
       [
@@ -146,26 +146,26 @@ async function searchHandler(bot, message, searchOptions = {isVerified: true}) {
 }
 
 /**
- * Search post by id command handler
+ * find post by id command handler
  *
  * @param {*} bot
  * @param {*} message
- * @param {*} searchOptions
+ * @param {*} findOptions
  * @return {*}
  */
-async function searchPostByIdHandler(bot, message, searchOptions) {
+async function findPostByIdHandler(bot, message, findOptions) {
   const postIdHandler = async (messagePostId) => {
-    const post = await mongo.searchPostById(
+    const post = await mongo.findPostById(
         bot,
         message,
         messagePostId.text,
         send,
         remove,
-        searchOptions,
+        findOptions,
     );
 
     if (!post) {
-      const text = myMessages.messageList.search.notFound(messagePostId.text);
+      const text = myMessages.messageList.find.notFound(messagePostId.text);
 
       send(bot,
           message,
@@ -176,7 +176,7 @@ async function searchPostByIdHandler(bot, message, searchOptions) {
 
   const postIdPrompt = send(
       bot, message,
-      myMessages.messageList.admin.findById, searchOptions,
+      myMessages.messageList.admin.findById, findOptions,
   );
   return await bot.onReplyToMessage(
       message.chat.id,
@@ -280,27 +280,27 @@ async function callbackQueryHandler(bot, query) {
 
   const currentPage = clientInfo[query.from.id].page;
 
-  let prevMessage;
+  var prevMessage;
 
   switch (query.data) {
     case 'prev_page':
       clientInfo[query.from.id].page = (currentPage - 1) || 0;
-      prevMessage = await searchHandler(bot, query.message);
+      prevMessage = await findPostHandler(bot, query.message);
       break;
     case 'next_page':
       clientInfo[query.from.id].page += 1;
-      prevMessage = await searchHandler(bot, query.message);
+      prevMessage = await findPostHandler(bot, query.message);
       break;
     case 'prev_page_verify':
       clientInfo[query.from.id].page = (currentPage - 1) || 0;
-      prevMessage = await searchHandler(
+      prevMessage = await findPostHandler(
           bot, query.message,
           {isVerified: false},
       );
       break;
     case 'next_page_verify':
       clientInfo[query.from.id].page += 1;
-      prevMessage = await searchHandler(
+      prevMessage = await findPostHandler(
           bot, query.message,
           {isVerified: false},
       );
@@ -323,13 +323,13 @@ async function callbackQueryHandler(bot, query) {
 
 /**
  * [Admin function]
- * Search post to verify handler
+ * find post to verify handler
  *
  * @param {*} bot
  * @param {*} message
  */
-function searchPostToVerifyHandler(bot, message) {
-  searchHandler(bot, message, {isVerified: false});
+function findPostToVerifyHandler(bot, message) {
+  findPostHandler(bot, message, {isVerified: false});
 }
 
 /**
@@ -388,17 +388,17 @@ async function verifyPostByIdHandler(bot, message) {
   }
 
   const postIdHandler = async (messagePostId) => {
-    const searchOptions = {
+    const findOptions = {
       isVerified: false,
     };
 
-    const post = await mongo.searchPostById(
+    const post = await mongo.findPostById(
         bot,
         message,
         messagePostId.text,
         send,
         remove,
-        searchOptions,
+        findOptions,
     );
 
     if (!post) {
@@ -527,8 +527,8 @@ async function remove(bot, message, currentMessage) {
 module.exports = {
   startHandler,
   helpHandler,
-  searchHandler,
-  searchPostByIdHandler,
+  findPostHandler,
+  findPostByIdHandler,
   newPostHandler,
   deletePostByIdHandler,
   myPostsHandler,
@@ -536,7 +536,7 @@ module.exports = {
   clsHandler,
   allMessageHandler,
   callbackQueryHandler,
-  searchPostToVerifyHandler,
+  findPostToVerifyHandler,
   verifyPostHandler,
   verifyPostByIdHandler,
 };
