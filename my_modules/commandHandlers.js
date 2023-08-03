@@ -27,7 +27,7 @@ async function startHandler(bot, message) {
   const user = await mongo.findUserById(message.from.id);
 
   if (!user) {
-    send(bot, message, myMessages.messageList.somethingWentWrong);
+    mongo.login(message.from)
     return;
   }
 
