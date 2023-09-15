@@ -43,9 +43,9 @@ function start() {
 
 // refresher
 
-function refresh() {
+function refresh(request) {
   setInterval(() => {
-    const url = req.protocol + "://" + req.get("host") + req.originalUrl;
+    const url = request.protocol + "://" + request.get("host") + request.originalUrl;
     axios.get(url + "/refresh")
       .then(({ status }) => console.log(status))
       .catch((err) => {
@@ -61,12 +61,12 @@ app.get('/', (_req, res) => {
   res.status(200).end('bot start');
 });
 
-app.get('/refresh', (_req, res) => {
+app.get('/refresh', (req, res) => {
+  refresh(req);
   res.status(200).end('refresh');
 });
 
 app.listen(PORT, () => {
   console.log(`Server start on port ${PORT}`);
-  refresh();
   start();
 });
