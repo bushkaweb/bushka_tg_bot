@@ -45,7 +45,8 @@ function start() {
 
 function refresh() {
   setInterval(() => {
-    axios.get('/refresh')
+    const url = req.protocol + "://" + req.get("host") + req.originalUrl;
+    axios.get(url + "/refresh")
       .then(({ status }) => console.log(status))
       .catch((err) => {
         console.log(err);
