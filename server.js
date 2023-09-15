@@ -11,6 +11,7 @@ const commandHandlers = require('./my_modules/commandHandlers');
 
 const PORT = process.env.PORT || config.get('PORT');
 const token = process.env.TOKEN || '';
+const refreshIntervalDelayInMilliseconds = 60000
 
 const app = express();
 const bot = new TelegramBot(token, { polling: true });
@@ -43,12 +44,15 @@ function start() {
 // refresher
 
 function refresh() {
-  axios.get('/refresh')
-    .then(({ status }) => console.log(status))
-    .catch((err) => {
-      console.log(err);
-    });
+  setInterval(() => {
+    axios.get('/refresh')
+      .then(({ status }) => console.log(status))
+      .catch((err) => {
+        console.log(err);
+      });
+  }, refreshIntervalDelayInMilliseconds);
 }
+
 
 // express
 
