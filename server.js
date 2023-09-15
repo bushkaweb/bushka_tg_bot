@@ -31,7 +31,6 @@ function start() {
         commandHandlers[`${key}Handler`](bot, message);
       });
     });
-
     bot.on('callback_query', (query) => {
       commandHandlers.callbackQueryHandler(bot, query);
     });
